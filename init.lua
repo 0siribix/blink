@@ -7,6 +7,7 @@ Add blink behind mobs/players
 Check if entity was recently put down and if blinking close enough to it, don't recalculate destination
 Possibly add a priv and priv check?
 Localize
+Add swoosh sound
 ]]
 
 
