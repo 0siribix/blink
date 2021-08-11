@@ -1,0 +1,13 @@
+blink_distance (Maximum distance to teleport) int 15
+
+tp_into_prot (Allow teleport into a protected area) bool false
+
+tp_from_prot (Allow teleport out of a protected area) bool false
+
+cooldown (Cooldown period before next blink) float 2.5
+
+# Not implemented yet
+check_height (Check height of destination before blinking) bool false
+
+display_time (Time to show destination marker) float 4.0
+
