@@ -71,7 +71,10 @@ function blink_tp(user, marker)
 	origin.y = origin.y + user:get_properties().eye_height
 
 	local dir = user:get_look_dir()
-	local dpos = origin:add(dir:multiply(blink_distance))
+	local dpos = origin
+	dpos.x = dpos.x + (dir.x * blink_distance)
+	dpos.y = dpos.y + (dir.y * blink_distance)
+	dpos.z = dpos.z + (dir.z * blink_distance)
 
 	rc = Raycast(origin, dpos, false, false):next()
 	-- try to add loop here to pass through unwalkable nodes
@@ -81,7 +84,9 @@ function blink_tp(user, marker)
 		dpos = minetest.get_pointed_thing_position(rc)
 		-- then move 1 block in the direction of the intersected face
 		-- and move down 0.5
-		dpos = dpos:add(rc.intersection_normal)
+		dpos.x = dpos.x + rc.intersection_normal.x
+		dpos.y = dpos.y + rc.intersection_normal.y
+		dpos.z = dpos.z + rc.intersection_normal.z
 	end
 
 	if marker == nil then
