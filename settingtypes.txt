@@ -6,8 +6,7 @@ tp_from_prot (Allow teleport out of a protected area) bool false
 
 cooldown (Cooldown period before next blink) float 2.5
 
-# Not implemented yet
-check_height (Check height of destination before blinking) bool false
+blink_behind (Blink behind mobs or players and turn to face their back) bool true
 
-display_time (Time to show destination marker) float 4.0
+display_time (Time to show destination marker) float 6.0
 
