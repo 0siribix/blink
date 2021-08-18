@@ -10,6 +10,7 @@ Add swoosh sound
 Flash different color if no space to blink
 --Add Raycast to check line-of-sight when blinking behind a player/entity
 --Fix valid_entities and add more compatibility
+Possibly switch to first weapon in hotbar when blinking behind players/mobs
 ]]
 
 
@@ -119,8 +120,8 @@ function blink_tp(user, marker)
 					npos.y = npos.y + 1		-- cast the ray at an angle to hopefully catch edge case scenarios
 					if Raycast(npos, dpos, false, false):next() then no_space_to_blink = true end
 					break
-				else	-- other entity
-					core.chat_send_player(username, tostring(pt.ref:get_luaentity().name))
+				--else	-- other entity
+				--	core.chat_send_player(username, tostring(pt.ref:get_luaentity().name))
 				end
 			end
 		elseif pt.type == "node" then
