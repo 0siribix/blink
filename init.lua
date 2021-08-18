@@ -7,7 +7,7 @@ Add number of uses
 Check if marker was recently put down and if blinking close enough to it, don't recalculate destination
 Localize
 --Add swoosh sound
-Flash different color if no space to blink
+--Flash different color if no space to blink
 --Add Raycast to check line-of-sight when blinking behind a player/entity
 --Fix valid_entities and add more compatibility
 Possibly switch to first weapon in hotbar when blinking behind players/mobs
@@ -236,9 +236,9 @@ e_def = {
 			self.object:remove()
 		end
 	end
-})
+}
 
-core.register_entity("blink:marker", e_def)
+core.register_entity("blink:marker", table.copy(e_def))
 
 e_def.textures = {"blink_spectrum2.png"}
 e_def.tlast = 7
