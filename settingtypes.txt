@@ -4,7 +4,9 @@ tp_into_prot (Allow teleport into a protected area) bool false
 
 tp_from_prot (Allow teleport out of a protected area) bool false
 
-cooldown (Cooldown period before next blink) float 2.5
+cooldown_base (Cooldown period before next blink) float 0
+
+cooldown_factor (Multiply this by distance travelled and add to base) float 0.1
 
 blink_behind (Blink behind mobs or players and turn to face their back) bool true
 

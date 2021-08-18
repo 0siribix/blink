@@ -6,11 +6,12 @@ Add number of uses
 --Add blink behind mobs/players
 Check if marker was recently put down and if blinking close enough to it, don't recalculate destination
 Localize
-Add swoosh sound
+--Add swoosh sound
 Flash different color if no space to blink
 --Add Raycast to check line-of-sight when blinking behind a player/entity
 --Fix valid_entities and add more compatibility
 Possibly switch to first weapon in hotbar when blinking behind players/mobs
+-Make cooldown time condider calculation from distance travelled
 ]]
 
 
@@ -20,7 +21,7 @@ local S = core.get_translator("blink")
 
 --     SETTINGS     --
 -- Maximum distance to teleport
-local blink_distance = core.settings:get("blink:blink_distance") or 15
+local blink_distance = core.settings:get("blink:blink_distance") or 20
 
 -- Allow teleport into a protected area
 local tp_into_prot = core.settings:get_bool("blink:tp_into_prot") or false
@@ -29,7 +30,10 @@ local tp_into_prot = core.settings:get_bool("blink:tp_into_prot") or false
 local tp_from_prot = core.settings:get_bool("blink:tp_from_prot") or false
 
 -- Cooldown period before next blink
-local cooldown = core.settings:get("blink:cooldown") or 2.5
+local cooldown_base = core.settings:get("blink:cooldown_base") or 0
+
+-- Multiply this by distance travelled and add to base
+local cooldown_factor = core.settings:get("blink:cooldown_factor") or 0.1
 
 -- Blink Behind players or mobs and face their back
 local blink_behind = core.settings:get("blink:blink_behind") or true
@@ -56,8 +60,8 @@ blink.valid_entities = {
 local color_loops = 2	-- If display_time is short this the colors will cycle quickly. If it is long then they will cycle very slowly
 
 --     GLOBALS     --
-blink.active_marker = nil	-- objref of active marker
-blink.cooldown = false	-- Blink can't be used while this is true
+blink.active_marker = {}	-- Table of users marker objects
+blink.cooldown = {}	-- Collection of users still in cooldown
 
 
 -- marker should be a registered entity
@@ -68,8 +72,9 @@ end
 
 function blink_tp(user, marker)
 	local username = user:get_player_name()
+	local markername = ""	-- change this to 2 if we can't tp to this destination
 	if not marker then
-		if blink.cooldown then
+		if blink.cooldown[username] then
 			core.chat_send_player(username,
 				S("You must wait before using Blink again"))
 			return
@@ -136,8 +141,9 @@ function blink_tp(user, marker)
 		end
 	end
 
-	if blink.active_marker then
-		blink.active_marker:remove()
+	if blink.active_marker[username] then
+		blink.active_marker[username]:remove()
+		blink.active_marker[username] = nil
 	end
 
 	if not tp_into_prot and core.is_protected(dpos, username) then
@@ -160,28 +166,30 @@ function blink_tp(user, marker)
 				end
 			end
 		end
-		if no_space_to_blink then core.chat_send_player(username, S("Not enough space to blink here")) end
+		if no_space_to_blink then
+			markername = "2"
+			core.chat_send_player(username, S("Not enough space to blink here"))
+		end
 	end
 
 	if marker == nil then
 		if not no_space_to_blink then
 			dpos.y = dpos.y - 0.5
 			user:set_pos(dpos)
+			core.sound_play("blink_swoosh", {pos = dpos, max_hear_distance = 10})
 			if yaw then user:set_look_horizontal(yaw) end
 			if reset_pitch then user:set_look_vertical(0) end
 			if not core.is_creative_enabled(username) then
-				blink.cooldown = true
-				core.after(cooldown, function() blink.cooldown = false end)
+				local cooldown = cooldown_base +
+					cooldown_factor * vector.distance(origin, dpos)
+				blink.cooldown[username] = true
+				core.after(cooldown, function() blink.cooldown[username] = false end)
 			end
 		end
 	else
-		blink.active_marker = core.add_entity(dpos, "blink:marker")
+		blink.active_marker[username] = core.add_entity(dpos, "blink:marker" .. markername, username)
 	end
 
-end
-
-function end_cooldown()
-	blink.cooldown = false
 end
 
 core.register_tool("blink:rune", {
@@ -199,7 +207,7 @@ core.register_tool("blink:rune", {
 		end
 })
 
-core.register_entity("blink:marker", {
+e_def = {
 	physical = false,
 	collisionbox = {0,0,0,0,0,0},
 	visual = "mesh",
@@ -211,37 +219,31 @@ core.register_entity("blink:marker", {
 	mesh = "sphere.obj",
 	timer = 0,
 	glow = 7,
+	owner,
+	on_activate = function(self, staticdata, dtime_s)
+		self.owner = staticdata
+	end,
 	on_step = function(self, ftime)
 		self.timer = self.timer + ftime
 		local tframe = math.fmod(math.floor(self.timer / self.tstep), self.tlast)
 		if self.tframe ~= tframe then
 			self.tframe = tframe
-			self.object:set_texture_mod("^[verticalframe:28:" .. tframe)
+			self.object:set_texture_mod("^[verticalframe:".. self.tlast .. ":" .. tframe)
 		end
 		self.timer = self.timer + ftime
 		if self.timer > display_time then
+			blink.active_marker[self.owner] = nil
 			self.object:remove()
 		end
 	end
 })
 
+core.register_entity("blink:marker", e_def)
 
---[[core.register_node("blink:marker_node", {
-	walkable = false,
-	drawtype = "mesh",
-	tiles = {name = "blink_spectrum30.png",
-		animation = {
-			type = "vertical_frames",
-			aspect_w = 1,
-			aspect_h = 1,
-			length = 5,
-		},
-	},
-	mesh = "dodecagon.obj",
-	--not_in_creative_inventory = true
-})
-]]
+e_def.textures = {"blink_spectrum2.png"}
+e_def.tlast = 7
 
+core.register_entity("blink:marker2", e_def)
 
 --     Register Craft     --
 local mod_main
