@@ -29,7 +29,7 @@ local tp_into_prot = core.settings:get_bool("blink:tp_into_prot") or false
 local tp_from_prot = core.settings:get_bool("blink:tp_from_prot") or false
 
 -- Cooldown period before next blink
-local cooldown = core.settings:get("blink:cooldown") or 3.0
+local cooldown = core.settings:get("blink:cooldown") or 2.5
 
 -- Blink Behind players or mobs and face their back
 local blink_behind = core.settings:get("blink:blink_behind") or true
