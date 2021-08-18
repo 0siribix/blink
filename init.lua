@@ -2,12 +2,14 @@
 --Create mesh for marker circle
 --Add crafting
 Add number of uses
-Add height check for destination
-Add blink behind mobs/players
-Check if entity was recently put down and if blinking close enough to it, don't recalculate destination
-Possibly add a priv and priv check?
+--Add height check for destination
+--Add blink behind mobs/players
+Check if marker was recently put down and if blinking close enough to it, don't recalculate destination
 Localize
 Add swoosh sound
+Flash different color if no space to blink
+--Add Raycast to check line-of-sight when blinking behind a player/entity
+--Fix valid_entities and add more compatibility
 ]]
 
 
@@ -28,18 +30,35 @@ local tp_from_prot = core.settings:get_bool("blink:tp_from_prot") or false
 -- Cooldown period before next blink
 local cooldown = core.settings:get("blink:cooldown") or 3.0
 
---  If destination is too short, step backward until we find a place with enough space
--- This may cause a noticeable lag (more testing needed)
---local check_height = core.settings:get_bool("blink:check_height") or false
+-- Blink Behind players or mobs and face their back
+local blink_behind = core.settings:get("blink:blink_behind") or true
 
 -- Time to show destination marker
-local display_time = core.settings:get("blink:display_time") or 5.0
-local color_loops = 2	-- If display_time is short this the colors will cycle quickly. If it is long then they will cycle very slowly
+local display_time = core.settings:get("blink:display_time") or 6.0
 
+
+blink.valid_entities = {
+	["mobs_animal"] = true,
+	["mobs_monster"] = true,
+	["mobs_npc"] = true,
+	["mob_horse"] = true,
+	["mobs_sharks"] = true,
+	["mobs_crocs"] = true,
+	["mobs_fish"] = true,
+	["mobs_jellyfish"] = true,
+	["mobs_turtles"] = true,
+	["nssm"] = true,
+	["creeper"] = true,
+	["dmobs"] = true
+}
+
+local color_loops = 2	-- If display_time is short this the colors will cycle quickly. If it is long then they will cycle very slowly
 
 --     GLOBALS     --
 blink.active_marker = nil	-- objref of active marker
 blink.cooldown = false	-- Blink can't be used while this is true
+
+
 -- marker should be a registered entity
 function display_marker(user, marker)
 	if marker == "" or marker == nil then marker = "blink:marker" end
@@ -57,9 +76,11 @@ function blink_tp(user, marker)
 	end
 
 	local origin = user:get_pos()
+	local yaw	-- use these if we move behind a player or mob
+	local reset_pitch = false
 
-	if not tp_from_prot and core.is_protected(origin, user) then
-		chat_send_player(username, S("Cannot blink from protected areas!"))
+	if not tp_from_prot and core.is_protected(origin, username) then
+		core.chat_send_player(username, S("Cannot blink from protected areas!"))
 		return
 	end
 
@@ -67,45 +88,92 @@ function blink_tp(user, marker)
 	origin.y = origin.y + user:get_properties().eye_height
 
 	local dir = user:get_look_dir()
-	--local dpos = origin:add(dir:multiply(blink_distance))
 	local dpos = table.copy(origin)
 	dpos.x = dpos.x + (dir.x * blink_distance)
 	dpos.y = dpos.y + (dir.y * blink_distance)
 	dpos.z = dpos.z + (dir.z * blink_distance)
 
-	local rc = Raycast(origin, dpos, false, false):next()
-	-- try to add loop here to pass through unwalkable nodes
+	local no_space_to_blink = false
+	local rc = Raycast(origin, dpos, true, false)
 
-	-- first get the pos of the pointed thing
-	if rc then
-		dpos = core.get_pointed_thing_position(rc)
-		-- then move 1 block in the direction of the intersected face
-		--dpos = dpos:add(rc.intersection_normal)
-		dpos.x = dpos.x + rc.intersection_normal.x
-		dpos.y = dpos.y + rc.intersection_normal.y
-		dpos.z = dpos.z + rc.intersection_normal.z
+	for pt in rc do
+		if blink_behind and pt.type == "object" then
+			if pt.ref ~= user then		-- Raycast intersects with players head first
+				if pt.ref:is_player() or (
+						pt.ref:get_luaentity() and
+				         blink.valid_entities[pt.ref:get_luaentity().name:split(":")[1]]) then
+					local npos = pt.ref:get_pos()
+					if pt.ref:is_player() then
+						yaw = pt.ref:get_look_horizontal()
+					else
+						yaw = pt.ref:get_yaw() + pt.ref:get_luaentity().rotate
+					end
+					npos.y = npos.y + 0.5
+					reset_pitch = true
+					-- check line-of-site
+					-- this is to prevent someone blinking past blocks behind a player or entity
+					local lookdir = minetest.yaw_to_dir(yaw)
+					dpos.x = npos.x - (lookdir.x * 2)
+					dpos.z = npos.z - (lookdir.z * 2)
+					dpos.y = npos.y
+					npos.y = npos.y + 1		-- cast the ray at an angle to hopefully catch edge case scenarios
+					if Raycast(npos, dpos, false, false):next() then no_space_to_blink = true end
+					break
+				else	-- other entity
+					core.chat_send_player(username, tostring(pt.ref:get_luaentity().name))
+				end
+			end
+		elseif pt.type == "node" then
+			local npos = core.get_pointed_thing_position(pt)
+			local n = core.get_node(npos).name
+			if core.registered_nodes[n] == nil or core.registered_nodes[n].walkable then
+				dpos.x = npos.x + pt.intersection_normal.x
+				dpos.y = npos.y + pt.intersection_normal.y
+				dpos.z = npos.z + pt.intersection_normal.z
+				break
+			end
+		end
 	end
 
 	if blink.active_marker then
 		blink.active_marker:remove()
-		--blink.active_marker.expirationtime = 0
+	end
+
+	if not tp_into_prot and core.is_protected(dpos, username) then
+		core.chat_send_player(username, S("Cannot blink into protected areas"))
+		return
+	else
+		if not no_space_to_blink then
+			no_space_to_blink = true
+			for i = 1,-1,-2 do
+				local p = table.copy(dpos)
+				p.y = p.y + i
+				local n = core.get_node(p).name
+				if core.registered_nodes[n] and not core.registered_nodes[n].walkable then
+					no_space_to_blink = false
+					if i == 1 then
+						break
+					else
+						dpos.y = dpos.y - 1
+					end
+				end
+			end
+		end
+		if no_space_to_blink then core.chat_send_player(username, S("Not enough space to blink here")) end
 	end
 
 	if marker == nil then
-		if not tp_into_prot and core.is_protected(dpos, user) then
-			chat_send_player(username, S("Cannot blink into protected areas"))
-		end
-
-		-- here is where we would check the height
-
-		dpos.y = dpos.y - 0.5
-		user:set_pos(dpos)
-		if not core.is_creative_enabled(username) then
-			blink.cooldown = true
-			core.after(cooldown, function() blink.cooldown = false end)
+		if not no_space_to_blink then
+			dpos.y = dpos.y - 0.5
+			user:set_pos(dpos)
+			if yaw then user:set_look_horizontal(yaw) end
+			if reset_pitch then user:set_look_vertical(0) end
+			if not core.is_creative_enabled(username) then
+				blink.cooldown = true
+				core.after(cooldown, function() blink.cooldown = false end)
+			end
 		end
 	else
-
 		blink.active_marker = core.add_entity(dpos, "blink:marker")
 	end
 
