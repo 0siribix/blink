@@ -25,6 +25,7 @@ Features
 * Able to set static cooldown and/or dynamic cooldown (0.1s for each block travelled + the static cooldown)
 
 ![Before Blink](screenshot_1.png)
+
 ![After Blink](screenshot_2.png)
 
 Configuration
