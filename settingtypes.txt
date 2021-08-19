@@ -1,14 +1,23 @@
-blink_distance (Maximum distance to teleport) int 15
+#Maximum distance to blink
+blink_distance (Blink Distance) int 15
 
-tp_into_prot (Allow teleport into a protected area) bool false
+#Allow Blink into protected areas
+tp_into_prot (Blink into protected areas) bool false
 
-tp_from_prot (Allow teleport out of a protected area) bool false
+#Allow Blink from protected areas
+tp_from_prot (Blink from protected areas) bool false
 
-cooldown_base (Cooldown period before next blink) float 0
+#Base amount to add to cooldown period between blink
+cooldown_base (Cooldown Base) float 0
 
-cooldown_factor (Multiply this by distance travelled and add to base) float 0.1
+#Multiply this by distance travelled and add to base
+cooldown_factor (Cooldown multiplier) float 0.1
 
-blink_behind (Blink behind mobs or players and turn to face their back) bool true
+#Blink behind mobs or players and turn to face their back
+blink_behind (Blink Behind) bool true
 
-display_time (Time to show destination marker) float 6.0
+#Time to show destination marker
+display_time (Display Time) float 6.0
 
+# Any areas owned by this user are considered public and will allow users to blink
+public_username (Public areas username) string ""
