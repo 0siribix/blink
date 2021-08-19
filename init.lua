@@ -1,17 +1,9 @@
 --[[ To Do:
---Create mesh for marker circle
---Add crafting
-Add number of uses
---Add height check for destination
---Add blink behind mobs/players
-Check if marker was recently put down and if blinking close enough to it, don't recalculate destination
+Add tool wear and repair
+Use place marker button twice in the same place to blink there
 Localize
---Add swoosh sound
---Flash different color if no space to blink
---Add Raycast to check line-of-sight when blinking behind a player/entity
---Fix valid_entities and add more compatibility
-Possibly switch to first weapon in hotbar when blinking behind players/mobs
--Make cooldown time condider calculation from distance travelled
+Maybe switch to first weapon in hotbar when blinking behind players or mobs
+Clean up and document code
 ]]
 
 
