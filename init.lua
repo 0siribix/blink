@@ -41,6 +41,9 @@ local blink_behind = core.settings:get("blink:blink_behind") or true
 -- Time to show destination marker
 local display_time = core.settings:get("blink:display_time") or 6.0
 
+-- Public areas username. Any areas owned by this user are considered public and will allow users to blink
+local public_username = core.settings:get("blink:public_username") or ""
+
 
 blink.valid_entities = {
 	["mobs_animal"] = true,
@@ -85,7 +88,7 @@ function blink_tp(user, marker)
 	local yaw	-- use these if we move behind a player or mob
 	local reset_pitch = false
 
-	if not tp_from_prot and core.is_protected(origin, username) then
+	if not tp_from_prot and core.is_protected(origin, username) and core.is_protected(origin, public_username) then
 		core.chat_send_player(username, S("Cannot blink from protected areas!"))
 		return
 	end
@@ -146,7 +149,7 @@ function blink_tp(user, marker)
 		blink.active_marker[username] = nil
 	end
 
-	if not tp_into_prot and core.is_protected(dpos, username) then
+	if not tp_into_prot and core.is_protected(dpos, username)  and core.is_protected(origin, public_username) then
 		core.chat_send_player(username, S("Cannot blink into protected areas"))
 		return
 	else
