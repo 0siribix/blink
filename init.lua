@@ -100,14 +100,15 @@ function blink_tp(user, marker)
 	for pt in rc do
 		if blink_behind and pt.type == "object" then
 			if pt.ref ~= user then		-- Raycast intersects with players head first
+				ref_ent = pt.ref:get_luaentity()
 				if pt.ref:is_player() or (
-						pt.ref:get_luaentity() and
-				         blink.valid_entities[pt.ref:get_luaentity().name:split(":")[1]]) then
+						ref_ent and
+				         blink.valid_entities[ref_ent.name:split(":")[1]]) then
 					local npos = pt.ref:get_pos()
 					if pt.ref:is_player() then
 						yaw = pt.ref:get_look_horizontal()
 					else
-						yaw = pt.ref:get_yaw() + pt.ref:get_luaentity().rotate
+						yaw = pt.ref:get_yaw() + (ref_ent.rotate or 0)
 					end
 					npos.y = npos.y + 0.5
 					reset_pitch = true
@@ -121,7 +122,7 @@ function blink_tp(user, marker)
 					if Raycast(npos, dpos, false, false):next() then no_space_to_blink = true end
 					break
 				--else	-- other entity
-				--	core.chat_send_player(username, tostring(pt.ref:get_luaentity().name))
+				--	core.chat_send_player(username, tostring(ref_ent.name))
 				end
 			end
 		elseif pt.type == "node" then
