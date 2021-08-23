@@ -1,5 +1,5 @@
 #Maximum distance to blink
-blink_distance (Blink Distance) int 15
+blink_distance (Blink Distance) int 20
 
 #Allow Blink into protected areas
 tp_into_prot (Blink into protected areas) bool false
@@ -19,5 +19,8 @@ blink_behind (Blink Behind) bool true
 #Time to show destination marker
 display_time (Display Time) float 6.0
 
-# Any areas owned by this user are considered public and will allow users to blink. Recommend to create a non-use user account for the purpose of allowing blink in protected areas (e.g. user called allow_blink). Note that anyone can add the user to their protected area to allow anyone to blink in their area.
+#Any areas owned by this user are considered public and will allow users to blink. Recommend to create a non-use user account for the purpose of allowing blink in protected areas (e.g. user called allow_blink). Note that anyone can add the user to their protected area to allow anyone to blink in their area.
 public_username (Public areas username) string ""
+
+#Use Blink Rune at the same location while a marker is active to tp there.
+double_tap_tp (Double Tap to Blink) bool true

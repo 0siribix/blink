@@ -1,9 +1,9 @@
 --[[ To Do:
 Add tool wear and repair
-Use place marker button twice in the same place to blink there
 Localize
 Maybe switch to first weapon in hotbar when blinking behind players or mobs
 Clean up and document code
+Put messages in HUD instead of in chat
 ]]
 
 
@@ -35,6 +35,9 @@ local display_time = core.settings:get("blink:display_time") or 6.0
 
 -- Public areas username. Any areas owned by this user are considered public and will allow users to blink
 local public_username = core.settings:get("blink:public_username") or ""
+
+-- If placing a second marker in the same place as an existing one, tp there
+local double_tap_tp = core.settings:get("blink:double_tap_tp") or true
 
 
 blink.valid_entities = {
@@ -97,6 +100,7 @@ function blink_tp(user, marker)
 	local no_space_to_blink = false
 	local rc = Raycast(origin, dpos, true, false)
 
+	-- When I first wrote this code, I thought that all this calculation might cause server lag but it actually does very well
 	for pt in rc do
 		if blink_behind and pt.type == "object" then
 			if pt.ref ~= user then		-- Raycast intersects with players head first
@@ -137,7 +141,12 @@ function blink_tp(user, marker)
 		end
 	end
 
+	local oldpos
+
 	if blink.active_marker[username] then
+		if double_tap_tp and marker then
+			oldpos = blink.active_marker[username]:get_pos()
+		end
 		blink.active_marker[username]:remove()
 		blink.active_marker[username] = nil
 	end
@@ -166,6 +175,12 @@ function blink_tp(user, marker)
 			markername = "2"
 			core.chat_send_player(username, S("Not enough space to blink here"))
 		end
+	end
+
+	if (not no_space_to_blink) and oldpos and math.floor(oldpos.x) == math.floor(dpos.x) and
+				math.floor(oldpos.y) == math.floor(dpos.y) and
+				math.floor(oldpos.z) == math.floor(dpos.z) then
+		marker = nil
 	end
 
 	if marker == nil then
