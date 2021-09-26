@@ -39,6 +39,9 @@ local public_username = core.settings:get("blink:public_username") or ""
 -- If placing a second marker in the same place as an existing one, tp there
 local double_tap_tp = core.settings:get("blink:double_tap_tp") or true
 
+-- Number of uses for Blink Rune
+local num_uses = core.settings:get("blink:num_uses") or 150
+
 
 blink.valid_entities = {
 	["mobs_animal"] = true,
@@ -56,6 +59,7 @@ blink.valid_entities = {
 }
 
 local color_loops = 2	-- If display_time is short this the colors will cycle quickly. If it is long then they will cycle very slowly
+local tool_wear = math.ceil(65536 / num_uses)
 
 --     GLOBALS     --
 blink.active_marker = {}	-- Table of users marker objects
@@ -63,14 +67,14 @@ blink.cooldown = {}	-- Collection of users still in cooldown
 
 
 -- marker should be a registered entity
-function display_marker(user, marker)
+function display_marker(user, itemstack, marker)
 	if marker == "" or marker == nil then marker = "blink:marker" end
-	blink_tp(user, marker)
+	blink_tp(user, itemstack, marker)
 end
 
-function blink_tp(user, marker)
+function blink_tp(user, itemstack, marker)
 	local username = user:get_player_name()
-	local markername = ""	-- change this to 2 if we can't tp to this destination
+	local markername = "blink:marker"	-- change this to 2 if we can't tp to this destination
 	if not marker then
 		if blink.cooldown[username] then
 			core.chat_send_player(username,
@@ -118,7 +122,7 @@ function blink_tp(user, marker)
 					reset_pitch = true
 					-- check line-of-site
 					-- this is to prevent someone blinking past blocks behind a player or entity
-					local lookdir = minetest.yaw_to_dir(yaw)
+					local lookdir = core.yaw_to_dir(yaw)
 					dpos.x = npos.x - (lookdir.x * 2)
 					dpos.z = npos.z - (lookdir.z * 2)
 					dpos.y = npos.y
@@ -172,7 +176,7 @@ function blink_tp(user, marker)
 			end
 		end
 		if no_space_to_blink then
-			markername = "2"
+			markername = "blink:marker2"
 			core.chat_send_player(username, S("Not enough space to blink here"))
 		end
 	end
@@ -198,15 +202,33 @@ function blink_tp(user, marker)
 			end
 		end
 	else
-		blink.active_marker[username] = core.add_entity(dpos, "blink:marker" .. markername, username)
+		blink.active_marker[username] = core.add_entity(dpos, markername, username)
 	end
-
+	if itemstack then
+		itemstack:add_wear(tool_wear)
+		return itemstack
+	end
 end
 
 core.register_tool("blink:rune", {
 	description = S("Blink Rune"),
 	inventory_image = "blink_rune.png",
 	wield_image = "blink_rune_wield.png",
+	on_use = function(itemstack, user, pointed_thing)
+		return display_marker(user, itemstack)
+		end,
+	on_place = function(itemstack, user, pointed_thing)
+		return blink_tp(user, itemstack)
+		end,
+	on_secondary_use = function(itemstack, user, pointed_thing)
+		return blink_tp(user, itemstack)
+		end
+})
+
+core.register_tool("blink:forever_rune", {
+	description = S("Forever Rune"),
+	inventory_image = "blink_rune2.png",
+	wield_image = "blink_rune2_wield.png",
 	on_use = function(itemstack, user, pointed_thing)
 		return display_marker(user)
 		end,
@@ -217,7 +239,6 @@ core.register_tool("blink:rune", {
 		return blink_tp(user)
 		end
 })
-
 e_def = {
 	physical = false,
 	collisionbox = {0,0,0,0,0,0},
@@ -254,9 +275,13 @@ core.register_entity("blink:marker", table.copy(e_def))
 e_def.textures = {"blink_spectrum2.png"}
 e_def.tlast = 7
 
+-- This is the Red/Orange glow when there is no space to blink
 core.register_entity("blink:marker2", e_def)
 
---     Register Craft     --
+
+
+--     Register items     --
+--local mod_bonemeal = core.get_modpath("bonemeal")
 local mod_main
 if core.get_modpath("default") then
 	mod_main = "default"
@@ -264,47 +289,99 @@ elseif core.get_modpath("mcl_core") then
 	mod_main = "mcl_core"
 end
 
-local ing1, ing2, ing3
-if core.get_modpath("moreores") then
-	ing1 = "moreores:mithril_ingot"
-else
-	if mod_main == "default" then
-		ing1 = "default:diamondblock"
-	elseif mod_main == "mcl_core" then
-		ing1 = "mcl_core:diamondblock"
+-------------- Maybe try to figure out a way to work with Techpack grinder?
+
+-- Basic crafting items for Blink runes
+core.register_craftitem("blink:bone_shard", {
+	description = S("Bone shard"),
+	inventory_image = "blink_bone_shard.png"
+})
+
+if core.get_modpath("bonemeal") then
+	core.register_alias("blink:bone", "bonemeal:bone")
+
+	core.register_craft({
+		output = "blink:bone_shard 4",
+		type = "shapeless",
+		recipe = {"bonemeal:bone", "bonemeal:bone"}
+	})
+
+	if core.get_modpath("tubelib_addons1") then
+		tubelib.add_grinder_recipe({input = "bonemeal:bone", output = "blink:bone_shard 3"})
 	end
+else
+	core.register_craftitem("blink:bone", {
+		description = S("Bone"),
+		inventory_image = "blink_bone.png"
+	})
+
+	if core.get_modpath("bones") then
+		core.register_craft({
+			output = "blink:bone 3",
+			recipe = {{"bones:bones"}}
+		})
+	end
+
+	core.register_craft({
+		output = "blink:bone_shard 2",
+		recipe = {{"blink:bone"}}
+	})
+
+	if core.get_modpath("tubelib_addons1") then
+		tubelib.add_grinder_recipe({input = "blink:bone", output = "blink:bone_shard 3"})
+	end
+
+	for k, v in pairs(core.registered_nodes) do
+		if v.groups["soil"] or v.groups["dirt"] then
+			core.log("verbose", "Adding blink:bone drop to " .. k)
+			local ndrop
+			if v.drop then
+				if type(v.drop) == "string" then
+					ndrop = {items = {items = {v.drop}}}
+				elseif type(v.drop) == "table" then
+					ndrop = table.copy(v.drop)
+				end
+				table.insert(ndrop.items, {
+					items = {"blink:bone"},
+					rarity = 1
+				})
+				core.override_item(k, {drop = ndrop})
+			end
+		end
+	end
+
+	----------------- figure out how to add bone drop for skeleton mob
 end
 
-if core.get_modpath("quartz") then
-	ing2 = "quartz:block"
-else
-	if mod_main == "default" then
-		ing2 = "default:mese"
-	elseif mod_main == "mcl_core" and core.get_modpath("mesecons_torch") then
+--     Register Rune Crafts     --
+local ing1, ing2 = "", ""
+if mod_main == "default" then
+	ing1 = "default:mese_crystal"
+	ing2 = "default:mese"
+elseif mod_main == "mcl_core" then
+	if core.get_modpath("mesecons") then
+		ing1 = "mesecons:redstone"
+	end
+	if core.get_modpath("mesecons_torch") then
 		ing2 = "mesecons_torch:redstoneblock"
 	end
 end
 
-if core.get_modpath("bonemeal") then
-	ing3 = "bonemeal:bone"
-elseif core.get_modpath("bones") then
-	ing3 = "bones:bones"
-else
-	if mod_main == "default" then
-		ing3 = "default:clay_lump"
-	elseif mod_main == "mcl_core" then
-		ing3 = "mcl_core:clay_lump"
-	end
-end
 
-if ing1 and ing2 and ing3 then
-	core.register_craft({
-		output = "blink:rune",
-		recipe = {
-			{ing3, ing1, ing3},
-			{ing3, ing2, ing3},
-			{ing3, ing1, ing3},
-		}
-	})
-end
+core.register_craft({
+	output = "blink:rune",
+	recipe = {
+		{"blink:bone_shard", "blink:bone_shard", ""},
+		{"blink:bone_shard", "blink:bone_shard", ing1},
+		{"blink:bone_shard", "blink:bone_shard", ""}
+	}
+})
 
+core.register_craft({
+	output = "blink:forever_rune",
+	recipe = {
+		{"blink:rune", "blink:rune", "blink:rune"},
+		{"blink:rune", ing2, "blink:rune"},
+		{"blink:rune", "blink:rune", "blink:rune"},
+	}
+})
