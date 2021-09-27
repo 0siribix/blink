@@ -251,7 +251,7 @@ e_def = {
 	mesh = "sphere.obj",
 	timer = 0,
 	glow = 7,
-	owner,
+	owner = nil,
 	on_activate = function(self, staticdata, dtime_s)
 		self.owner = staticdata
 	end,
@@ -281,15 +281,12 @@ core.register_entity("blink:marker2", e_def)
 
 
 --     Register items     --
---local mod_bonemeal = core.get_modpath("bonemeal")
 local mod_main
 if core.get_modpath("default") then
 	mod_main = "default"
 elseif core.get_modpath("mcl_core") then
 	mod_main = "mcl_core"
 end
-
--------------- Maybe try to figure out a way to work with Techpack grinder?
 
 -- Basic crafting items for Blink runes
 core.register_craftitem("blink:bone_shard", {
