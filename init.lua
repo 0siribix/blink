@@ -340,7 +340,7 @@ else
 				end
 				table.insert(ndrop.items, {
 					items = {"blink:bone"},
-					rarity = 1
+					rarity = 50
 				})
 				core.override_item(k, {drop = ndrop})
 			end
