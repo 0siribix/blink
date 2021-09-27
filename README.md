@@ -8,7 +8,16 @@ Minetest 5.0.0+
 Description
 -------------
 
-Blink is a short distance teleport with a cooldown period. The further you blink, the longer the cooldown. You can also place a temporary marker that will display your destination if you were to blink. This will add a new dynamic to PvP and/or survival servers.
+Blink is a short distance teleport with a cooldown period. The further you blink, the longer the cooldown. You can also place a temporary marker that will display your destination if you were to blink. This will add a new dynamic to PvP and/or survival servers. If you blink into a player or a mob, you will find yourself directly behind them facing their back.
+
+Right click or double tap to blink in the direction you are looking. Left click or tap and hold to show a glowing orb at the location you would blink to. If you do this twice in the same place, you will blink to that spot (see screenshots)
+
+Blink Rune is limited uses (150 by default) and fairly easy to craft. Forever Rune is infinite uses and requires 8 Blink Runes plus a mese block to craft.
+
+Blink adds a few items for crafting purposes: Bone and Bone Shard. If Bonemeal is detected, that bone will be used instead. If Techpack is installed, a grinder recipe is added.
+
+Blink does not depend on MTG so it will work with any game including Mineclone.
+
 
 
 
@@ -41,8 +50,6 @@ according to the wanted setting changes.
 TODO
 --------
 
-* Add tool wear and repair
-* Use place marker button twice in the same place to blink there
 * Localize
 * Maybe switch to first weapon in hotbar when blinking behind players or mobs
 * Clean up and document code
