@@ -1,0 +1,35 @@
+
+Jonathan Malo (Fesliyan Studios)
+
+Sep 27, 2021, 10:49 AM PDT
+Hi there,
+
+Thanks for emailing and asking.
+
+That works perfectly fine.
+
+If you have any other questions, or if I've missed anything, please let me know.
+
+Thanks!
+Jonathan
+
+Jonathan Malo, helping Dave in the studio!
+
+Fesliyan Studios
+<physical address removed>
+<physical address removed>
+www.fesliyanstudios.com
+
+--------------------------------------------------------------------------
+
+Fesliyanstudios
+
+Sep 26, 2021, 6:44 PM PDT
+
+First, yes that is a valid email address. I provide a different email to every person or entity I correspond with ;)
+
+So, I've put together a project that is totally free and open source and have used several sound effects provided on your website. I'm concerned about the statement in the usage policy to not repost anywhere else. I need to know of this means I'm not able to package them with my project?
+
+This project is related to a FOSS Minecraft clone called Minetest. I've created a mod addon package for a blink teleport effect (based on the blink effect in the Dishonored games) and for this I picked out 7 of the 'swoosh' effects from here. There is no monetary incentive at all. The entire package needs to be hosted so that users are able to download it from the game UI.
+
+Please let me know if this is acceptable and whether I need to include a license with the sound files. Currently I simply have a copy of your usage policy and a link to your website included in the package as well as in the description of the project

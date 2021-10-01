@@ -58,5 +58,11 @@ TODO
 License
 -------
 
-Licensed under the GNU LGPL version 3 or later.
-See LICENSE.txt and http://www.gnu.org/licenses/lgpl-3.txt
+Code is licensed under the GNU LGPL version 3 or later.
+See LICENSE.txt and http://www.gnu.org/licenses/lgpl-3.0.txt
+
+Graphics were created by my wife and I and are licensed under CC-BY-SA 4.0
+See textures/LICENSE.txt and https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+
+Sounds were downloaded from https://www.fesliyanstudios.com/ and explicit permissions was obtained to include with Blink
+See sounds/credits.txt and sounds/permission.txt and https://www.fesliyanstudios.com/sound-effects-policy
