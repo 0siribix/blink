@@ -1,0 +1,8 @@
+You must wait before using Blink again=
+Cannot blink from protected areas!=
+Cannot blink into protected areas=
+Not enough space to blink here=
+Blink Rune=
+Forever Rune=
+Bone shard=
+Bone=
